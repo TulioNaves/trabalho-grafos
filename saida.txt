@@ -1,0 +1,6 @@
+n_vertices: 5
+n_arestas: 5
+grau_min: 1
+grau_max: 4
+grau_medio: 2.00
+mediana_grau: 2.00
