@@ -4,9 +4,57 @@
 #include <algorithm>   // Para o std::sort
 #include <iomanip>     // Para o std::setprecision
 #include <iostream>    // Necessário para std::cerr e std::endl
+#include <queue>
 
 // 1. Construtor: Inicializa os valores básicos
 Grafo::Grafo(bool matriz) : nVertices(0), nArestas(0), usaMatriz(matriz) {}
+
+void Grafo::BFS(int origem, const std::string& arquivoSaida) {
+    // Vetores para rastrear o estado de cada vértice
+    std::vector<bool> visitado(nVertices + 1, false);
+    std::vector<int> pai(nVertices + 1, 0); // 0 indica que não tem pai (raiz)
+    std::vector<int> nivel(nVertices + 1, -1); // -1 indica não alcançado
+    std::queue<int> fila;
+
+    // Inicializa o vértice de origem
+    visitado[origem] = true;
+    nivel[origem] = 0;
+    fila.push(origem);
+
+    while (!fila.empty()) {
+        int u = fila.front();
+        fila.pop();
+
+        if (usaMatriz) {
+            for (int v = 1; v <= nVertices; ++v) {
+                if (matrizAdj[u][v] && !visitado[v]) {
+                    visitado[v] = true;
+                    pai[v] = u;
+                    nivel[v] = nivel[u] + 1;
+                    fila.push(v);
+                }
+            }
+        } else {
+            for (int v : listaAdj[u]) {
+                if (!visitado[v]) {
+                    visitado[v] = true;
+                    pai[v] = u;
+                    nivel[v] = nivel[u] + 1;
+                    fila.push(v);
+                }
+            }
+        }
+    }
+
+    // Grava o resultado no arquivo
+    std::ofstream out(arquivoSaida);
+    out << "Vertice,Pai,Nivel\n";
+    for (int i = 1; i <= nVertices; ++i) {
+        out << i << "," << pai[i] << "," << nivel[i] << "\n";
+    }
+    out.close();
+}
+
 
 // 2. Função de Leitura: O "coração" para carregar o grafo
 void Grafo::lerArquivo(const std::string& caminho) {

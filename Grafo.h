@@ -18,7 +18,7 @@ public:
     Grafo(bool matriz); // Construtor define a representação
     void lerArquivo(const std::string& caminho);
     void gerarRelatorio(const std::string& caminhoSaida);
-
+    void BFS(int inicio, const std::string& arquivoSaida);
     // Getters para as estatísticas
     int getGrauMin();
     int getGrauMax();
