@@ -3,6 +3,6 @@ cmake-build-debug/
 *.o
 *.exe
 bin/
-data/grafos/
-data/resultados/
+data/grafos/*
+data/resultados/*
 GEMINI.md
