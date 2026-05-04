@@ -14,8 +14,6 @@ void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
 
     arquivo >> numVertices;
     
-    // O limite artificial de vértices foi removido conforme solicitado para testes de carga.
-    // A alocação agora é limitada apenas pela memória RAM disponível no sistema.
     // O bloco try-catch abaixo tratará falhas de alocação caso o grafo exceda a RAM.
 
     try {
