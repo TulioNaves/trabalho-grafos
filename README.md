@@ -1,78 +1,77 @@
-# Biblioteca de Teoria dos Grafos
+# Biblioteca de Teoria dos Grafos (Projeto Unificado P1 & P2)
 
-Este projeto consiste em uma biblioteca computacional em C++ para manipulação de grafos não-direcionados, desenvolvida para a disciplina de **Teoria dos Grafos (COS 242 - 2025/2)**. A biblioteca é capaz de representar grafos em memória, realizar análises estatísticas e executar algoritmos fundamentais de busca e conectividade.
-
-## 🚀 Propósito
-O objetivo principal é fornecer uma ferramenta modular e eficiente para o estudo de grafos de larga escala, permitindo a comparação de desempenho e consumo de memória entre diferentes representações (Lista vs. Matriz de Adjacência).
+Esta biblioteca em C++ foi desenvolvida para a disciplina de **Teoria dos Grafos (COS 242)**. O sistema é capaz de manipular grafos não-direcionados de larga escala, suportando tanto grafos simples (sem peso) quanto grafos ponderados, com foco em eficiência de memória e performance algorítmica.
 
 ---
 
-## 🏗️ Arquitetura e Responsabilidades
+## 🏗️ Decisões de Arquitetura e Implementação
 
-O projeto segue os princípios de **SRP (Single Responsibility Principle)** e o padrão **Strategy**:
+O projeto foi construído seguindo princípios de **Engenharia de Software** para garantir robustez:
 
-| Classe | Responsabilidade |
-| :--- | :--- |
-| **`Grafo`** (Interface) | Define o contrato de dados e metadados comuns a qualquer representação. |
-| **`ListaAdjacencia`** | Gerencia o armazenamento esparso usando `std::vector<std::vector<int>>`. Otimizada para economia de memória. |
-| **`MatrizAdjacencia`** | Gerencia o armazenamento denso usando um vetor linear de bits (`std::vector<bool>`). Otimizada para acesso O(1). |
-| **`AlgoritmosGrafos`** | Classe utilitária com métodos estáticos que implementam a lógica matemática (BFS, DFS, Distância, Diâmetro e Componentes Conexas) de forma desacoplada da representação. |
-| **`MonitorMemoria`** | Utilitário para medição do uso de memória real (RSS) via sistema Linux. |
-
----
-
-## 📂 Formatos de Dados
-
-### Entrada (`data/grafos/`)
-Arquivos `.txt` seguindo o formato:
-- A primeira linha contém o número total de vértices `N`.
-- As linhas subsequentes contêm pares `U V` representando uma aresta entre os vértices `U` e `V`.
-
-### Saída (`data/resultados/`)
-1.  **`resultados_benchmarking.csv`**: Tabela consolidada com tempos médios (100 execuções), uso de memória e estatísticas de escala.
-2.  **`*_estatisticas.txt`**: Relatório de grau mínimo, máximo, médio e mediana de grau.
-3.  **`*_componentes.txt`**: Lista de componentes conexas, seus tamanhos e membros, em ordem decrescente.
+1.  **Polimorfismo e Princípio Aberto-Fechado (OCP):** 
+    Para suportar a Parte 2 sem comprometer a performance da Parte 1, estendemos a interface `Grafo` para `GrafoPonderado`. Isso permitiu manter a `MatrizAdjacencia` original (que usa apenas 1 bit por aresta) intacta, enquanto criamos novas classes para os pesos (`double`).
+2.  **Travas de Segurança de Memória (RAM):**
+    Implementamos travas preditivas de **4 GB**. Antes de carregar qualquer grafo, o sistema calcula o custo teórico de alocação. Se exceder 4 GB, o carregamento é abortado com uma mensagem informativa, protegendo o Sistema Operacional de travamentos.
+3.  **Controle de Complexidade Algorítmica:**
+    O algoritmo de Dijkstra com Vetor ($O(V^2)$) é automaticamente ignorado para grafos com mais de **20.000 vértices**, onde o tempo de execução se tornaria inviável (dias/semanas). Nesses casos, apenas o Dijkstra com Heap ($O(E \log V)$) é executado.
 
 ---
 
-## 🛠️ Como Executar
+## 🛠️ Classes e Responsabilidades
 
-O projeto utiliza um **Makefile** para automatizar o build.
+### Interfaces (Abstração)
+- **`Grafo`**: Contrato base para grafos simples.
+- **`GrafoPonderado`**: Estende `Grafo`, exigindo métodos para recuperação de pesos das arestas.
 
-### Pré-requisitos
-- Compilador `g++` com suporte a C++17.
-- Sistema Operacional Linux (para monitoramento de memória residente).
+### Representações (Dados)
+- **`ListaAdjacencia` / `ListaAdjacenciaPonderada`**: Armazenamento esparso via `std::vector<std::vector<...>>`. Ideal para economizar RAM.
+- **`MatrizAdjacencia`**: Representação densa via `std::vector<bool>` (bitset). Otimizada para acesso $O(1)$ usando apenas 1 bit por aresta.
+- **`MatrizAdjacenciaPonderada`**: Matriz de `double` simulada em vetor linear para máxima performance de cache.
 
-### Configuração Inicial (Dados)
-Os arquivos de grafos originais não estão incluídos no repositório devido ao seu tamanho. Antes de executar o projeto, você deve:
-1. Criar o diretório `data/grafos/` se ele não existir.
-2. Adicionar seus arquivos de grafos (ex: `grafo_1.txt`, `grafo_2.txt`, etc.) dentro desta pasta seguindo o formato descrito na seção "Formatos de Dados".
+### Algoritmos e Auxiliares
+- **`AlgoritmosGrafos`**: Implementa BFS, DFS, Componentes Conexas e as duas versões do Dijkstra.
+- **`MinHeap`**: Min-Heap Indexado customizado. Permite o "Decrease Key" em $O(\log V)$, essencial para a eficiência do Dijkstra.
+- **`RedeColaboracao` / `MapeadorVertices`**: Utilitários para converter nomes de pesquisadores (strings) em IDs numéricos e vice-versa.
 
-### Comandos Principais
+---
 
-**1. Compilar e Executar tudo:**
-```bash
-make run
-```
-Este comando compila o projeto com otimização `-O3` e inicia o pipeline automático de testes em todos os arquivos da pasta `data/grafos/`.
+## 🔄 Fluxo de Dados
 
-**2. Apenas Compilar:**
-```bash
-make
-```
-Gera o executável em `bin/grafo_bench`.
+### 1. Entrada (Input)
+O programa espera arquivos `.txt` organizados em:
+- `data/grafos/`: Grafos simples (N, depois U V).
+- `data/grafos_pesos/`: Grafos ponderados (N, depois U V Peso).
+- `data/rede_colaboracao/`: Arquivos da rede de pesquisadores (`rede_colaboracao.txt` e `rede_colaboracao_vertices.txt`).
 
-**3. Limpar Build e Resultados:**
+### 2. Saída (Output - CSV)
+Todos os resultados de benchmark e caminhos mínimos são salvos em **CSV** para facilitar a análise:
+- `resultados_benchmarking_p1.csv`: Performance de BFS/DFS e memória da P1.
+- `resultados_benchmarking_p2.csv`: Comparativo Dijkstra Vetor vs Heap da P2.
+- `*_caminhos_10.csv`: Tabela de caminhos mínimos do vértice 10 para 20, 30, 40, 50, 60.
+- `caminhos_colaboracao.csv`: Resultados da análise entre o Prof. Edsger Dijkstra e outros pesquisadores.
+
+---
+
+## 🚀 Como Executar
+
+O projeto utiliza um **Makefile** para facilitar o build.
+
+### Compilação
 ```bash
 make clean
+make
 ```
-Remove pastas de objetos e todos os arquivos gerados em `data/resultados/`.
+
+### Execução (Menu Interativo)
+```bash
+./bin/grafo_bench
+```
+O programa exibirá um menu com três opções principais:
+1.  **Projeto 1**: Pipeline completo de busca e componentes.
+2.  **Projeto 2**: Pipeline de Dijkstra e caminhos mínimos em grafos ponderados.
+3.  **Rede de Colaboração**: Análise específica da rede de pesquisadores.
 
 ---
 
-## 📊 Pipeline de Benchmark
-Ao ser executado, o programa:
-1. Carrega cada grafo em ambas as representações.
-2. Realiza **100 execuções** de BFS e DFS com raízes aleatórias para garantir médias estáveis.
-3. Monitora o consumo de RAM real via `/proc/self/status`.
-4. Gera relatórios automáticos sem necessidade de intervenção humana.
+## 📊 Monitoramento de Recursos
+A classe `MonitorMemoria` captura o consumo real de RAM (VmRSS) através do sistema de arquivos `/proc` do Linux, permitindo auditoria precisa do uso de hardware durante os testes de carga.

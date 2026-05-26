@@ -14,7 +14,14 @@ void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
 
     arquivo >> numVertices;
     
-    // O bloco try-catch abaixo tratará falhas de alocação caso o grafo exceda a RAM.
+    // Trava de segurança: impede o carregamento se a estimativa de memória exceder 4 GB
+    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024; // 4 GB em bytes
+    size_t estimativaBytes = (static_cast<size_t>(numVertices + 1) * (numVertices + 1)) / 8;
+
+    if (estimativaBytes > LIMITE_MEMORIA) {
+        throw std::runtime_error("Grafo muito grande para Matriz de Adjacencia (Estimativa: " + 
+                                 std::to_string(estimativaBytes / 1024 / 1024) + " MB). Pulando...");
+    }
 
     try {
         matriz.assign(static_cast<size_t>(numVertices + 1) * (numVertices + 1), false);

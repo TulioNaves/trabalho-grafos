@@ -1,11 +1,16 @@
 #include "TeoriaDosGrafos/AlgoritmosGrafos.hpp"
+#include "TeoriaDosGrafos/MinHeap.hpp"
 #include <fstream>
 #include <queue>
 #include <stack>
 #include <algorithm>
 #include <vector>
+#include <limits>
+#include <stdexcept>
 
 namespace TeoriaDosGrafos {
+
+const double INF_DIST = std::numeric_limits<double>::infinity();
 
 void AlgoritmosGrafos::bfs(const Grafo& g, int verticeInicial, const std::string& arquivoSaida) {
     int numVertices = g.getNumVertices();
@@ -179,6 +184,83 @@ void AlgoritmosGrafos::encontrarComponentesConexas(const Grafo& g, const std::st
             arquivo.close();
         }
     }
+}
+
+std::vector<double> distancias; // Mantido para compatibilidade se necessário, mas mudamos a assinatura
+
+std::pair<std::vector<double>, std::vector<int>> AlgoritmosGrafos::dijkstraVetor(const GrafoPonderado& g, int origem) {
+    if (g.possuiPesoNegativo()) throw std::runtime_error("Dijkstra nao suporta pesos negativos.");
+    
+    int n = g.getNumVertices();
+    std::vector<double> dist(n + 1, INF_DIST);
+    std::vector<int> pai(n + 1, -1);
+    std::vector<bool> explorado(n + 1, false);
+
+    dist[origem] = 0;
+
+    for (int i = 0; i < n; ++i) {
+        int u = -1;
+        for (int v = 1; v <= n; ++v) {
+            if (!explorado[v] && (u == -1 || dist[v] < dist[u])) {
+                u = v;
+            }
+        }
+
+        if (u == -1 || dist[u] == INF_DIST) break;
+        explorado[u] = true;
+
+        for (auto& adj : g.getVizinhosPonderados(u)) {
+            int v = adj.first;
+            double peso = adj.second;
+            if (dist[u] + peso < dist[v]) {
+                dist[v] = dist[u] + peso;
+                pai[v] = u;
+            }
+        }
+    }
+    return {dist, pai};
+}
+
+std::pair<std::vector<double>, std::vector<int>> AlgoritmosGrafos::dijkstraHeap(const GrafoPonderado& g, int origem) {
+    if (g.possuiPesoNegativo()) throw std::runtime_error("Dijkstra nao suporta pesos negativos.");
+
+    int n = g.getNumVertices();
+    std::vector<double> dist(n + 1, INF_DIST);
+    std::vector<int> pai(n + 1, -1);
+    MinHeap heap(n);
+
+    dist[origem] = 0;
+    heap.inserirOuAtualizar(origem, 0);
+
+    while (!heap.vazio()) {
+        int u = heap.extrairMinimo();
+
+        for (auto& adj : g.getVizinhosPonderados(u)) {
+            int v = adj.first;
+            double peso = adj.second;
+
+            if (dist[u] + peso < dist[v]) {
+                dist[v] = dist[u] + peso;
+                pai[v] = u;
+                heap.inserirOuAtualizar(v, dist[v]);
+            }
+        }
+    }
+    return {dist, pai};
+}
+
+std::vector<int> AlgoritmosGrafos::recuperarCaminho(int origem, int destino, const std::vector<int>& pais) {
+    std::vector<int> caminho;
+    if (destino < 1 || destino >= (int)pais.size() || (pais[destino] == -1 && destino != origem)) {
+        return caminho; // Caminho não existe
+    }
+
+    for (int v = destino; v != -1; v = pais[v]) {
+        caminho.push_back(v);
+        if (v == origem) break;
+    }
+    std::reverse(caminho.begin(), caminho.end());
+    return caminho;
 }
 
 } // namespace TeoriaDosGrafos

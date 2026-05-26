@@ -13,6 +13,15 @@ void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
     }
 
     arquivo >> numVertices;
+
+    // Trava de segurança: impede o carregamento se o custo base dos vetores exceder 4 GB
+    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024; // 4 GB em bytes
+    size_t estimativaBaseBytes = static_cast<size_t>(numVertices + 1) * sizeof(std::vector<int>);
+
+    if (estimativaBaseBytes > LIMITE_MEMORIA) {
+        throw std::runtime_error("Grafo muito grande para Lista de Adjacencia (Base excede 4 GB). Pulando...");
+    }
+
     adj.assign(numVertices + 1, std::vector<int>());
     numArestas = 0;
 

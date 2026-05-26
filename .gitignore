@@ -4,5 +4,10 @@ cmake-build-debug/
 *.exe
 bin/
 data/grafos/*
+data/grafos_pesos/*
 data/resultados/*
 GEMINI.md
+data/grafos_pesos/*.txt
+data/resultados/*.csv
+data/resultados/*.txt
+data/rede_colaboracao/*
