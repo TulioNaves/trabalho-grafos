@@ -15,7 +15,7 @@ void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo, bool
     arquivo >> numVertices;
     
     // Trava de segurança: impede o carregamento se a estimativa de memória exceder 4 GB
-    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024; // 4 GB em bytes
+    const size_t LIMITE_MEMORIA = 8ULL * 1024 * 1024 * 1024; // 8 GB em bytes
     size_t estimativaBytes = (static_cast<size_t>(numVertices + 1) * (numVertices + 1)) / 8;
 
     if (estimativaBytes > LIMITE_MEMORIA) {

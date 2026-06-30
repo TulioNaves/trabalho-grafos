@@ -199,6 +199,8 @@ std::pair<std::vector<double>, std::vector<int>> AlgoritmosGrafos::dijkstraVetor
 
     dist[origem] = 0;
 
+    const ListaAdjacenciaPonderada* listaAdj = dynamic_cast<const ListaAdjacenciaPonderada*>(&g);
+
     for (int i = 0; i < n; ++i) {
         int u = -1;
         for (int v = 1; v <= n; ++v) {
@@ -210,12 +212,23 @@ std::pair<std::vector<double>, std::vector<int>> AlgoritmosGrafos::dijkstraVetor
         if (u == -1 || dist[u] == INF_DIST) break;
         explorado[u] = true;
 
-        for (auto& adj : g.getVizinhosPonderados(u)) {
-            int v = adj.first;
-            double peso = adj.second;
-            if (dist[u] + peso < dist[v]) {
-                dist[v] = dist[u] + peso;
-                pai[v] = u;
+        if (listaAdj) {
+            for (const auto& adj : listaAdj->getVizinhosPonderadosRef(u)) {
+                int v = adj.first;
+                double peso = adj.second;
+                if (dist[u] + peso < dist[v]) {
+                    dist[v] = dist[u] + peso;
+                    pai[v] = u;
+                }
+            }
+        } else {
+            for (const auto& adj : g.getVizinhosPonderados(u)) {
+                int v = adj.first;
+                double peso = adj.second;
+                if (dist[u] + peso < dist[v]) {
+                    dist[v] = dist[u] + peso;
+                    pai[v] = u;
+                }
             }
         }
     }
@@ -233,17 +246,32 @@ std::pair<std::vector<double>, std::vector<int>> AlgoritmosGrafos::dijkstraHeap(
     dist[origem] = 0;
     heap.inserirOuAtualizar(origem, 0);
 
+    const ListaAdjacenciaPonderada* listaAdj = dynamic_cast<const ListaAdjacenciaPonderada*>(&g);
+
     while (!heap.vazio()) {
         int u = heap.extrairMinimo();
 
-        for (auto& adj : g.getVizinhosPonderados(u)) {
-            int v = adj.first;
-            double peso = adj.second;
+        if (listaAdj) {
+            for (const auto& adj : listaAdj->getVizinhosPonderadosRef(u)) {
+                int v = adj.first;
+                double peso = adj.second;
 
-            if (dist[u] + peso < dist[v]) {
-                dist[v] = dist[u] + peso;
-                pai[v] = u;
-                heap.inserirOuAtualizar(v, dist[v]);
+                if (dist[u] + peso < dist[v]) {
+                    dist[v] = dist[u] + peso;
+                    pai[v] = u;
+                    heap.inserirOuAtualizar(v, dist[v]);
+                }
+            }
+        } else {
+            for (auto& adj : g.getVizinhosPonderados(u)) {
+                int v = adj.first;
+                double peso = adj.second;
+
+                if (dist[u] + peso < dist[v]) {
+                    dist[v] = dist[u] + peso;
+                    pai[v] = u;
+                    heap.inserirOuAtualizar(v, dist[v]);
+                }
             }
         }
     }
@@ -273,6 +301,8 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
     bool possuiCicloNegativo = false;
     int iteracoes = 0;
 
+    const ListaAdjacenciaPonderada* listaAdj = dynamic_cast<const ListaAdjacenciaPonderada*>(&g);
+
     if (usarOtimizacoes) {
         // Bellman-Ford com Otimização de Yen e Early Termination
         for (int i = 1; i <= n - 1; ++i) {
@@ -282,14 +312,28 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
             // Passagem Forward (u < v)
             for (int u = 1; u <= n; ++u) {
                 if (dist[u] == INF_DIST) continue;
-                for (const auto& aresta : g.getVizinhosPonderados(u)) {
-                    int v = aresta.first;
-                    double peso = aresta.second;
-                    if (u < v) {
-                        if (dist[u] + peso < dist[v]) {
-                            dist[v] = dist[u] + peso;
-                            pai[v] = u;
-                            mudou = true;
+                if (listaAdj) {
+                    for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (u < v) {
+                            if (dist[u] + peso < dist[v]) {
+                                dist[v] = dist[u] + peso;
+                                pai[v] = u;
+                                mudou = true;
+                            }
+                        }
+                    }
+                } else {
+                    for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (u < v) {
+                            if (dist[u] + peso < dist[v]) {
+                                dist[v] = dist[u] + peso;
+                                pai[v] = u;
+                                mudou = true;
+                            }
                         }
                     }
                 }
@@ -298,14 +342,28 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
             // Passagem Backward (u > v)
             for (int u = n; u >= 1; --u) {
                 if (dist[u] == INF_DIST) continue;
-                for (const auto& aresta : g.getVizinhosPonderados(u)) {
-                    int v = aresta.first;
-                    double peso = aresta.second;
-                    if (u > v) {
-                        if (dist[u] + peso < dist[v]) {
-                            dist[v] = dist[u] + peso;
-                            pai[v] = u;
-                            mudou = true;
+                if (listaAdj) {
+                    for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (u > v) {
+                            if (dist[u] + peso < dist[v]) {
+                                dist[v] = dist[u] + peso;
+                                pai[v] = u;
+                                mudou = true;
+                            }
+                        }
+                    }
+                } else {
+                    for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (u > v) {
+                            if (dist[u] + peso < dist[v]) {
+                                dist[v] = dist[u] + peso;
+                                pai[v] = u;
+                                mudou = true;
+                            }
                         }
                     }
                 }
@@ -321,12 +379,23 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
         if (iteracoes == n - 1) {
             for (int u = 1; u <= n; ++u) {
                 if (dist[u] == INF_DIST) continue;
-                for (const auto& aresta : g.getVizinhosPonderados(u)) {
-                    int v = aresta.first;
-                    double peso = aresta.second;
-                    if (dist[u] + peso < dist[v]) {
-                        possuiCicloNegativo = true;
-                        break;
+                if (listaAdj) {
+                    for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (dist[u] + peso < dist[v]) {
+                            possuiCicloNegativo = true;
+                            break;
+                        }
+                    }
+                } else {
+                    for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (dist[u] + peso < dist[v]) {
+                            possuiCicloNegativo = true;
+                            break;
+                        }
                     }
                 }
                 if (possuiCicloNegativo) break;
@@ -338,12 +407,23 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
             iteracoes++;
             for (int u = 1; u <= n; ++u) {
                 if (dist[u] == INF_DIST) continue;
-                for (const auto& aresta : g.getVizinhosPonderados(u)) {
-                    int v = aresta.first;
-                    double peso = aresta.second;
-                    if (dist[u] + peso < dist[v]) {
-                        dist[v] = dist[u] + peso;
-                        pai[v] = u;
+                if (listaAdj) {
+                    for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (dist[u] + peso < dist[v]) {
+                            dist[v] = dist[u] + peso;
+                            pai[v] = u;
+                        }
+                    }
+                } else {
+                    for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                        int v = aresta.first;
+                        double peso = aresta.second;
+                        if (dist[u] + peso < dist[v]) {
+                            dist[v] = dist[u] + peso;
+                            pai[v] = u;
+                        }
                     }
                 }
             }
@@ -352,12 +432,23 @@ ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int 
         // Verificação de ciclo negativo
         for (int u = 1; u <= n; ++u) {
             if (dist[u] == INF_DIST) continue;
-            for (const auto& aresta : g.getVizinhosPonderados(u)) {
-                int v = aresta.first;
-                double peso = aresta.second;
-                if (dist[u] + peso < dist[v]) {
-                    possuiCicloNegativo = true;
-                    break;
+            if (listaAdj) {
+                for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (dist[u] + peso < dist[v]) {
+                        possuiCicloNegativo = true;
+                        break;
+                    }
+                }
+            } else {
+                for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (dist[u] + peso < dist[v]) {
+                        possuiCicloNegativo = true;
+                        break;
+                    }
                 }
             }
             if (possuiCicloNegativo) break;
@@ -373,12 +464,23 @@ std::unique_ptr<GrafoPonderado> AlgoritmosGrafos::gerarGrafoTransposto(const Gra
     gTransposto->inicializar(n);
     gTransposto->setDirecionado(g.isDirecionado());
 
+    const ListaAdjacenciaPonderada* listaAdj = dynamic_cast<const ListaAdjacenciaPonderada*>(&g);
+
     for (int u = 1; u <= n; ++u) {
-        for (const auto& aresta : g.getVizinhosPonderados(u)) {
-            int v = aresta.first;
-            double peso = aresta.second;
-            // No grafo original: u -> v. No transposto: v -> u.
-            gTransposto->adicionarAresta(v, u, peso);
+        if (listaAdj) {
+            for (const auto& aresta : listaAdj->getVizinhosPonderadosRef(u)) {
+                int v = aresta.first;
+                double peso = aresta.second;
+                // No grafo original: u -> v. No transposto: v -> u.
+                gTransposto->adicionarAresta(v, u, peso);
+            }
+        } else {
+            for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                int v = aresta.first;
+                double peso = aresta.second;
+                // No grafo original: u -> v. No transposto: v -> u.
+                gTransposto->adicionarAresta(v, u, peso);
+            }
         }
     }
     return gTransposto;

@@ -320,23 +320,19 @@ void pipelineProjeto3() {
             double tBFOtimizadoMedio = tBFOtimizadoTotal / rodadas;
             std::cout << "  - Ciclo negativo detectado? " << (resOpt.possuiCicloNegativo ? "Sim" : "Nao") << std::endl;
 
-            // 2. Executar Bellman-Ford Clássico (se o grafo for pequeno, V <= 10000)
+            // 2. Executar Bellman-Ford Clássico (se o grafo for razoável, V <= 100000)
             double tBFClassicoMedio = -1.0;
             int iteracoesClassico = -1;
-            if (n <= 10000) {
-                std::cout << "  - Executando Bellman-Ford Classico..." << std::endl;
-                double tBFClassicoTotal = 0;
+            if (n <= 100000) {
+                std::cout << "  - Executando Bellman-Ford Classico (1 rodada para evitar lentidao)..." << std::endl;
                 ResultadoBellmanFord resClassico;
-                for (int r = 0; r < rodadas; ++r) {
-                    auto s = std::chrono::high_resolution_clock::now();
-                    resClassico = AlgoritmosGrafos::bellmanFord(*gT, destinoInteresse, false);
-                    auto e = std::chrono::high_resolution_clock::now();
-                    tBFClassicoTotal += std::chrono::duration<double>(e - s).count();
-                }
-                tBFClassicoMedio = tBFClassicoTotal / rodadas;
+                auto s = std::chrono::high_resolution_clock::now();
+                resClassico = AlgoritmosGrafos::bellmanFord(*gT, destinoInteresse, false);
+                auto e = std::chrono::high_resolution_clock::now();
+                tBFClassicoMedio = std::chrono::duration<double>(e - s).count();
                 iteracoesClassico = resClassico.iteracoesExecutadas;
             } else {
-                std::cout << "  - Pulando Bellman-Ford Classico para seguranca (V > 10000)." << std::endl;
+                std::cout << "  - Pulando Bellman-Ford Classico para seguranca (V > 100000)." << std::endl;
             }
 
             // 3. Executar Dijkstra Heap no grafo transposto a partir de 100

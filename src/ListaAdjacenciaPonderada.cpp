@@ -15,7 +15,7 @@ void ListaAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqui
     arquivo >> numVertices;
 
     // Trava de segurança: impede o carregamento se o custo base exceder 4 GB
-    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024;
+    const size_t LIMITE_MEMORIA = 8ULL * 1024 * 1024 * 1024;
     size_t estimativaBaseBytes = static_cast<size_t>(numVertices + 1) * sizeof(std::vector<std::pair<int, double>>);
 
     if (estimativaBaseBytes > LIMITE_MEMORIA) {
@@ -62,6 +62,12 @@ void ListaAdjacenciaPonderada::adicionarAresta(int u, int v, double peso) {
 
 std::vector<std::pair<int, double>> ListaAdjacenciaPonderada::getVizinhosPonderados(int v) const {
     if (v < 1 || v > numVertices) return {};
+    return adj[v];
+}
+
+const std::vector<std::pair<int, double>>& ListaAdjacenciaPonderada::getVizinhosPonderadosRef(int v) const {
+    static const std::vector<std::pair<int, double>> vazio;
+    if (v < 1 || v > numVertices) return vazio;
     return adj[v];
 }
 

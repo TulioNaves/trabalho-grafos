@@ -15,7 +15,7 @@ void MatrizAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqu
     arquivo >> numVertices;
 
     // Trava de segurança: impede o carregamento se a matriz de doubles exceder 4 GB
-    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024;
+    const size_t LIMITE_MEMORIA = 8ULL * 1024 * 1024 * 1024;
     size_t numElementos = static_cast<size_t>(numVertices + 1) * (numVertices + 1);
     size_t estimativaBytes = numElementos * sizeof(double);
 

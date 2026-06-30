@@ -15,7 +15,7 @@ void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo, bool 
     arquivo >> numVertices;
 
     // Trava de segurança: impede o carregamento se o custo base dos vetores exceder 4 GB
-    const size_t LIMITE_MEMORIA = 4ULL * 1024 * 1024 * 1024; // 4 GB em bytes
+    const size_t LIMITE_MEMORIA = 8ULL * 1024 * 1024 * 1024; // 8 GB em bytes
     size_t estimativaBaseBytes = static_cast<size_t>(numVertices + 1) * sizeof(std::vector<int>);
 
     if (estimativaBaseBytes > LIMITE_MEMORIA) {

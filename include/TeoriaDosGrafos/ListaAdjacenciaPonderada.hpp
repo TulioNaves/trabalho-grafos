@@ -20,6 +20,7 @@ public:
 
     // Implementação da interface GrafoPonderado
     std::vector<std::pair<int, double>> getVizinhosPonderados(int v) const override;
+    const std::vector<std::pair<int, double>>& getVizinhosPonderadosRef(int v) const;
     bool possuiPesoNegativo() const override { return temPesoNegativo; }
 
 private:

@@ -17,10 +17,12 @@ O projeto foi construído seguindo princípios de **Engenharia de Software** par
     *   **Early Termination (Encerramento Antecipado):** Interrompe o loop principal caso nenhuma distância sofra relaxamento durante uma iteração completa.
     *   **1ª Otimização de Yen:** Particiona as relaxações de arestas em passagens progressivas (forward, $u < v$) e regressivas (backward, $u > v$) ordenadas pelos IDs dos vértices, agilizando drasticamente a propagação dos caminhos mínimos.
 4.  **Travas de Segurança de Memória (RAM):**
-    Mantemos a trava de **4 GB** preditiva. Antes de alocar qualquer representação de grafo, o sistema calcula o consumo teórico e aborta o carregamento com um erro caso exceda 4 GB, protegendo o sistema operacional.
+    Mantemos a trava de **8 GB** preditiva. Antes de alocar qualquer representação de grafo, o sistema calcula o consumo teórico e aborta o carregamento com um erro caso exceda 8 GB, protegendo o sistema operacional.
 5.  **Controle de Complexidade Algorítmica e Segurança:**
     *   O Dijkstra com Vetor ($O(V^2)$) é automaticamente ignorado para grafos com mais de **20.000 vértices**.
-    *   O Bellman-Ford Clássico ($O(V \cdot E)$) é pulado para grafos com mais de **10.000 vértices** para evitar travamento da CPU, rodando apenas a versão otimizada.
+    *   O Bellman-Ford Clássico ($O(V \cdot E)$) é pulado para grafos com mais de **100.000 vértices** para evitar tempos excessivos de execução (acima desse limite, roda apenas a versão otimizada).
+6.  **Otimização de Passagem por Referência nas Adjacências:**
+    Para evitar a cópia por valor de vetores de vizinhos (`std::vector<std::pair<int, double>>`) a cada iteração de relaxamento em grafos grandes (o que geraria bilhões de alocações na heap), implementamos o método `getVizinhosPonderadosRef` em `ListaAdjacenciaPonderada`. Os algoritmos em `AlgoritmosGrafos` realizam um `dynamic_cast` para acessar essa referência direta, reduzindo drasticamente o tempo de execução do Dijkstra e do Bellman-Ford.
 
 ---
 
