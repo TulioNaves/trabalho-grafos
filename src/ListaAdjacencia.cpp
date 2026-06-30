@@ -6,7 +6,7 @@
 
 namespace TeoriaDosGrafos {
 
-void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
+void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado) {
     std::ifstream arquivo(caminhoArquivo);
     if (!arquivo.is_open()) {
         throw std::runtime_error("Nao foi possivel abrir o arquivo: " + caminhoArquivo);
@@ -22,6 +22,7 @@ void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
         throw std::runtime_error("Grafo muito grande para Lista de Adjacencia (Base excede 4 GB). Pulando...");
     }
 
+    this->direcionado = direcionado;
     adj.assign(numVertices + 1, std::vector<int>());
     numArestas = 0;
 
@@ -31,7 +32,9 @@ void ListaAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
             continue;
         }
         adj[u].push_back(v);
-        adj[v].push_back(u);
+        if (!direcionado) {
+            adj[v].push_back(u);
+        }
         numArestas++;
     }
 

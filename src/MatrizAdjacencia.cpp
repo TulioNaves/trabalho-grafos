@@ -6,7 +6,7 @@
 
 namespace TeoriaDosGrafos {
 
-void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
+void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado) {
     std::ifstream arquivo(caminhoArquivo);
     if (!arquivo.is_open()) {
         throw std::runtime_error("Nao foi possivel abrir o arquivo: " + caminhoArquivo);
@@ -29,6 +29,7 @@ void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
         throw std::runtime_error("Falha na alocacao de memoria para a matriz");
     }
 
+    this->direcionado = direcionado;
     numArestas = 0;
 
     int u, v;
@@ -38,7 +39,9 @@ void MatrizAdjacencia::carregarDoArquivo(const std::string& caminhoArquivo) {
         size_t idx1 = getIndex(u, v);
         if (!matriz[idx1]) {
             matriz[idx1] = true;
-            matriz[getIndex(v, u)] = true;
+            if (!direcionado) {
+                matriz[getIndex(v, u)] = true;
+            }
             numArestas++;
         }
     }

@@ -19,7 +19,7 @@ class Grafo {
 public:
     virtual ~Grafo() = default;
 
-    virtual void carregarDoArquivo(const std::string& caminhoArquivo) = 0;
+    virtual void carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado = false) = 0;
     virtual void gerarArquivoSaida(const std::string& caminhoArquivo) = 0;
 
     virtual EstatisticasGrafo calcularEstatisticas() = 0;
@@ -30,10 +30,13 @@ public:
 
     int getNumVertices() const { return numVertices; }
     int getNumArestas() const { return numArestas; }
+    bool isDirecionado() const { return direcionado; }
+    void setDirecionado(bool dir) { direcionado = dir; }
 
 protected:
     int numVertices = 0;
     int numArestas = 0;
+    bool direcionado = false;
 };
 
 } // namespace TeoriaDosGrafos

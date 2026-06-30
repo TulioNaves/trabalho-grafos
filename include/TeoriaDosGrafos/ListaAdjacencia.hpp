@@ -12,7 +12,7 @@ public:
     ListaAdjacencia() = default;
     ~ListaAdjacencia() override = default;
 
-    void carregarDoArquivo(const std::string& caminhoArquivo) override;
+    void carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado = false) override;
     void gerarArquivoSaida(const std::string& caminhoArquivo) override;
     EstatisticasGrafo calcularEstatisticas() override;
 

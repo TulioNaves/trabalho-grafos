@@ -1,5 +1,6 @@
 #include "TeoriaDosGrafos/AlgoritmosGrafos.hpp"
 #include "TeoriaDosGrafos/MinHeap.hpp"
+#include "TeoriaDosGrafos/ListaAdjacenciaPonderada.hpp"
 #include <fstream>
 #include <queue>
 #include <stack>
@@ -261,6 +262,126 @@ std::vector<int> AlgoritmosGrafos::recuperarCaminho(int origem, int destino, con
     }
     std::reverse(caminho.begin(), caminho.end());
     return caminho;
+}
+
+ResultadoBellmanFord AlgoritmosGrafos::bellmanFord(const GrafoPonderado& g, int origem, bool usarOtimizacoes) {
+    int n = g.getNumVertices();
+    std::vector<double> dist(n + 1, INF_DIST);
+    std::vector<int> pai(n + 1, -1);
+    
+    dist[origem] = 0;
+    bool possuiCicloNegativo = false;
+    int iteracoes = 0;
+
+    if (usarOtimizacoes) {
+        // Bellman-Ford com Otimização de Yen e Early Termination
+        for (int i = 1; i <= n - 1; ++i) {
+            bool mudou = false;
+            iteracoes++;
+
+            // Passagem Forward (u < v)
+            for (int u = 1; u <= n; ++u) {
+                if (dist[u] == INF_DIST) continue;
+                for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (u < v) {
+                        if (dist[u] + peso < dist[v]) {
+                            dist[v] = dist[u] + peso;
+                            pai[v] = u;
+                            mudou = true;
+                        }
+                    }
+                }
+            }
+
+            // Passagem Backward (u > v)
+            for (int u = n; u >= 1; --u) {
+                if (dist[u] == INF_DIST) continue;
+                for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (u > v) {
+                        if (dist[u] + peso < dist[v]) {
+                            dist[v] = dist[u] + peso;
+                            pai[v] = u;
+                            mudou = true;
+                        }
+                    }
+                }
+            }
+
+            if (!mudou) {
+                break;
+            }
+        }
+
+        // Verificação de ciclo negativo
+        // Se mudou na última iteração possível (ou se não paramos antecipadamente)
+        if (iteracoes == n - 1) {
+            for (int u = 1; u <= n; ++u) {
+                if (dist[u] == INF_DIST) continue;
+                for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (dist[u] + peso < dist[v]) {
+                        possuiCicloNegativo = true;
+                        break;
+                    }
+                }
+                if (possuiCicloNegativo) break;
+            }
+        }
+    } else {
+        // Bellman-Ford Clássico
+        for (int i = 1; i <= n - 1; ++i) {
+            iteracoes++;
+            for (int u = 1; u <= n; ++u) {
+                if (dist[u] == INF_DIST) continue;
+                for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                    int v = aresta.first;
+                    double peso = aresta.second;
+                    if (dist[u] + peso < dist[v]) {
+                        dist[v] = dist[u] + peso;
+                        pai[v] = u;
+                    }
+                }
+            }
+        }
+
+        // Verificação de ciclo negativo
+        for (int u = 1; u <= n; ++u) {
+            if (dist[u] == INF_DIST) continue;
+            for (const auto& aresta : g.getVizinhosPonderados(u)) {
+                int v = aresta.first;
+                double peso = aresta.second;
+                if (dist[u] + peso < dist[v]) {
+                    possuiCicloNegativo = true;
+                    break;
+                }
+            }
+            if (possuiCicloNegativo) break;
+        }
+    }
+
+    return {dist, pai, possuiCicloNegativo, iteracoes};
+}
+
+std::unique_ptr<GrafoPonderado> AlgoritmosGrafos::gerarGrafoTransposto(const GrafoPonderado& g) {
+    int n = g.getNumVertices();
+    auto gTransposto = std::make_unique<ListaAdjacenciaPonderada>();
+    gTransposto->inicializar(n);
+    gTransposto->setDirecionado(g.isDirecionado());
+
+    for (int u = 1; u <= n; ++u) {
+        for (const auto& aresta : g.getVizinhosPonderados(u)) {
+            int v = aresta.first;
+            double peso = aresta.second;
+            // No grafo original: u -> v. No transposto: v -> u.
+            gTransposto->adicionarAresta(v, u, peso);
+        }
+    }
+    return gTransposto;
 }
 
 } // namespace TeoriaDosGrafos

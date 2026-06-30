@@ -6,7 +6,7 @@
 
 namespace TeoriaDosGrafos {
 
-void MatrizAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArquivo) {
+void MatrizAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado) {
     std::ifstream arquivo(caminhoArquivo);
     if (!arquivo.is_open()) {
         throw std::runtime_error("Nao foi possivel abrir o arquivo: " + caminhoArquivo);
@@ -30,6 +30,7 @@ void MatrizAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqu
         throw std::runtime_error("Falha na alocacao de memoria para a matriz ponderada");
     }
 
+    this->direcionado = direcionado;
     numArestas = 0;
     temPesoNegativo = false;
 
@@ -41,7 +42,9 @@ void MatrizAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqu
         size_t idx = getIndex(u, v);
         if (matriz[idx] == INF) {
             matriz[idx] = peso;
-            matriz[getIndex(v, u)] = peso;
+            if (!direcionado) {
+                matriz[getIndex(v, u)] = peso;
+            }
             numArestas++;
             if (peso < 0) temPesoNegativo = true;
         }

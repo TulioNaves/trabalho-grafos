@@ -6,7 +6,7 @@
 
 namespace TeoriaDosGrafos {
 
-void ListaAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArquivo) {
+void ListaAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArquivo, bool direcionado) {
     std::ifstream arquivo(caminhoArquivo);
     if (!arquivo.is_open()) {
         throw std::runtime_error("Nao foi possivel abrir o arquivo: " + caminhoArquivo);
@@ -22,6 +22,7 @@ void ListaAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqui
         throw std::runtime_error("Grafo muito grande para Lista Adjacencia Ponderada. Pulando...");
     }
 
+    this->direcionado = direcionado;
     adj.assign(numVertices + 1, std::vector<std::pair<int, double>>());
     numArestas = 0;
     temPesoNegativo = false;
@@ -32,7 +33,9 @@ void ListaAdjacenciaPonderada::carregarDoArquivo(const std::string& caminhoArqui
         if (u > numVertices || v > numVertices || u < 1 || v < 1) continue;
         
         adj[u].push_back({v, peso});
-        adj[v].push_back({u, peso});
+        if (!direcionado) {
+            adj[v].push_back({u, peso});
+        }
         numArestas++;
         if (peso < 0) temPesoNegativo = true;
     }
@@ -50,7 +53,9 @@ void ListaAdjacenciaPonderada::inicializar(int n) {
 void ListaAdjacenciaPonderada::adicionarAresta(int u, int v, double peso) {
     if (u > numVertices || v > numVertices || u < 1 || v < 1) return;
     adj[u].push_back({v, peso});
-    adj[v].push_back({u, peso});
+    if (!direcionado) {
+        adj[v].push_back({u, peso});
+    }
     numArestas++;
     if (peso < 0) temPesoNegativo = true;
 }

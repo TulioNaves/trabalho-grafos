@@ -5,8 +5,16 @@
 #include "GrafoPonderado.hpp"
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace TeoriaDosGrafos {
+
+struct ResultadoBellmanFord {
+    std::vector<double> distancias;
+    std::vector<int> pais;
+    bool possuiCicloNegativo;
+    int iteracoesExecutadas;
+};
 
 class AlgoritmosGrafos {
 public:
@@ -23,6 +31,10 @@ public:
 
     // Utilitário para reconstruir o caminho a partir do vetor de pais
     static std::vector<int> recuperarCaminho(int origem, int destino, const std::vector<int>& pais);
+
+    // Projeto 3: Algoritmos de Caminho Mínimo adicionais
+    static ResultadoBellmanFord bellmanFord(const GrafoPonderado& g, int origem, bool usarOtimizacoes = true);
+    static std::unique_ptr<GrafoPonderado> gerarGrafoTransposto(const GrafoPonderado& g);
 };
 
 } // namespace TeoriaDosGrafos
