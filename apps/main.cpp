@@ -318,6 +318,7 @@ void pipelineProjeto3() {
                 tBFOtimizadoTotal += std::chrono::duration<double>(e - s).count();
             }
             double tBFOtimizadoMedio = tBFOtimizadoTotal / rodadas;
+            std::cout << "  - Ciclo negativo detectado? " << (resOpt.possuiCicloNegativo ? "Sim" : "Nao") << std::endl;
 
             // 2. Executar Bellman-Ford Clássico (se o grafo for pequeno, V <= 10000)
             double tBFClassicoMedio = -1.0;
@@ -340,23 +341,33 @@ void pipelineProjeto3() {
 
             // 3. Executar Dijkstra Heap no grafo transposto a partir de 100
             std::cout << "  - Executando Dijkstra (Heap)..." << std::endl;
-            double tDijkstraTotal = 0;
+            double tDijkstraMedio = -1.0;
             std::pair<std::vector<double>, std::vector<int>> resDijkstra;
-            for (int r = 0; r < rodadas; ++r) {
-                auto s = std::chrono::high_resolution_clock::now();
-                resDijkstra = AlgoritmosGrafos::dijkstraHeap(*gT, destinoInteresse);
-                auto e = std::chrono::high_resolution_clock::now();
-                tDijkstraTotal += std::chrono::duration<double>(e - s).count();
+            bool dijkstraSucesso = false;
+            try {
+                double tDijkstraTotal = 0;
+                for (int r = 0; r < rodadas; ++r) {
+                    auto s = std::chrono::high_resolution_clock::now();
+                    resDijkstra = AlgoritmosGrafos::dijkstraHeap(*gT, destinoInteresse);
+                    auto e = std::chrono::high_resolution_clock::now();
+                    tDijkstraTotal += std::chrono::duration<double>(e - s).count();
+                }
+                tDijkstraMedio = tDijkstraTotal / rodadas;
+                dijkstraSucesso = true;
+            } catch (const std::exception& e) {
+                std::cout << "  - Dijkstra falhou: " << e.what() << std::endl;
             }
-            double tDijkstraMedio = tDijkstraTotal / rodadas;
 
             // Registrar distâncias dos vértices 10, 20 e 30 para 100
             for (int orig : origensInteresse) {
                 double distBF = resOpt.distancias[orig];
-                double distDijkstra = resDijkstra.first[orig];
-
                 std::string distBFStr = (distBF == std::numeric_limits<double>::infinity() ? "Inf" : std::to_string(distBF));
-                std::string distDijStr = (distDijkstra == std::numeric_limits<double>::infinity() ? "Inf" : std::to_string(distDijkstra));
+                
+                std::string distDijStr = "N/A";
+                if (dijkstraSucesso) {
+                    double distDijkstra = resDijkstra.first[orig];
+                    distDijStr = (distDijkstra == std::numeric_limits<double>::infinity() ? "Inf" : std::to_string(distDijkstra));
+                }
 
                 csvDist << nomeArquivo << "," << orig << "," << destinoInteresse << "," << distBFStr << "," << distDijStr << "\n";
             }
@@ -365,7 +376,7 @@ void pipelineProjeto3() {
             csvBench << nomeArquivo << "," << n << "," << m << ","
                      << tBFOtimizadoMedio << ","
                      << (tBFClassicoMedio < 0 ? "Pulado" : std::to_string(tBFClassicoMedio)) << ","
-                     << tDijkstraMedio << ","
+                     << (tDijkstraMedio < 0 ? "Pulado (Pesos Negativos)" : std::to_string(tDijkstraMedio)) << ","
                      << resOpt.iteracoesExecutadas << ","
                      << (iteracoesClassico < 0 ? "N/A" : std::to_string(iteracoesClassico)) << "\n";
 
